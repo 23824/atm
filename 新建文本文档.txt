@@ -1,0 +1,287 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<time.h>
+
+struct Transaction
+{
+    char username[100];
+    time_t timestamp;
+    int type;//0-取款，1-存款
+    int amount;
+
+    struct Transaction* next;
+};
+typedef struct Transaction Transaction;
+
+//交易记录信息链表 
+Transaction* tHead = NULL;
+Transaction* tTail = NULL;
+
+
+struct Account
+{
+    char username[19];//账户
+    char password[7];//密码
+    int money;//余额
+    //char tel[12];//电话
+   // char id[19];//身份证
+    struct Account* next;//下一个账户节点的地址
+};
+typedef struct Account Account;
+
+int language;//1-Chinese,2-English
+
+Account a;
+
+typedef struct Account Account;
+
+Account* head = NULL;//指向头结点 
+Account* tail = NULL;//指向尾结点 
+Account* curAccount = NULL;//记录当前账户 
+
+//加载数据
+void loadData()
+{
+    FILE* fp = fopen("D:/atm.txt", "r");
+    if (fp != NULL)
+    {
+        while (!feof(fp))
+        {
+            //创建结点：在堆上申请一块内存空间，将其地址赋值给指针newNode
+            Account* newNode = (Account*)malloc(sizeof(Account));
+            if (newNode == NULL)
+            {
+                printf("分配内存失败");
+                exit(-1);
+            }
+
+            //结点赋值：结点初始化
+            newNode->next = NULL;
+            fscanf_s(fp, "%s %s %d\n ", newNode->username, 19, newNode->password, 7, &newNode->money);
+
+            //添加结点到链表
+            if (head == NULL)
+            {
+                head = newNode;
+                tail = newNode;
+            }
+            else
+            {
+                tail->next = newNode;
+                tail = newNode;
+            }
+        }
+        fclose(fp);
+    }
+}
+
+
+
+void printLinkedlist()
+{
+    Account* curP = head;
+    while (curP != NULL)
+    {
+        printf("%s\t%s\t%d\n", curP->username, curP->password, curP->money);
+        curP = curP->next;
+    }
+}
+
+//保存数据
+void saveData()
+{
+    FILE* fp = fopen("D:/atm.txt", "w");
+    if (fp != NULL)
+    {
+        Account* curP = head;
+        while (curP != NULL)
+        {
+            fprintf(fp, curP->username, curP->password, curP->money);
+            curP = curP->next;
+        }
+        fclose(fp);
+    }
+}
+
+//判断账户与密码是否正确
+int findAccount(Account(a))
+{
+    Account* curP = head;
+    while (curP != NULL)
+    {
+        if ((strcmp(curP->username, a.username) == 0) && (strcmp(curP->password, a.password) == 0))
+        {
+            curAccount = curP;
+            return 1;
+        }
+        curP = curP->next;
+    }
+    return 0;
+}
+
+//登录
+void signIn()
+{
+    int i;
+    for (i = 0; i < 3; i++)
+    {
+        Account a;
+        printf("请输入账号：");
+        scanf_s("%s", a.username, 19);
+
+        printf("请输入密码：");
+        scanf_s("%s", a.password, 7);
+        if (findAccount(a))
+        {
+            printf("登录成功!\n");
+            break;
+        }
+        else
+        {
+            printf("登录失败!\n");
+
+        }
+
+    }
+}
+
+//开户
+void signUp()
+{
+    printf("请输入账户：\n");
+    scanf_s("%s", a.username, 19);
+
+    printf("请输入密码：\n");
+    scanf_s("%s", a.password, 7);
+
+
+    saveData();
+    printf("创建成功！\n");
+
+}
+
+//取款
+void drawMoney()
+{
+    system("cls");
+    signIn();
+    printf("请输入取款金额(整百)：");
+    int money;
+    scanf_s("%d", &money);
+
+    //验证金额
+    if (curAccount->money >= money)
+    {
+        printf("取款成功！\n");
+        curAccount->money -= money;
+
+        //产生交易记录...	
+
+        //创建结点
+       Transaction* newNode = (Transaction*)malloc(sizeof(Transaction));
+        if (newNode == NULL)
+        {
+            printf("内存分配失败");
+            exit(-1);
+        }
+
+        //结点初始化
+        newNode->next = NULL;
+        strcpy(newNode->username, curAccount->username);
+        newNode->timestamp = time(NULL);
+        newNode->type = 0;
+        newNode->amount = money;
+
+        //添加结点到链表
+        if (tHead == NULL)
+        {
+            tHead = newNode;
+            tTail = newNode;
+        }
+        else
+        {
+            tTail->next = newNode;
+            tTail = newNode;
+        }
+    }
+    else
+    {
+        printf("余额不足！\n");
+    }
+    saveData();
+}
+
+
+//存款
+void saveMoney()
+{
+    printf("请输入存款金额：");
+    int money;
+    scanf_s("%d", &money);
+    printf("存款成功！\n");
+    curAccount->money += money;
+    saveData();
+
+    //产生交易记录...	
+
+}
+
+
+//展示菜单  
+void showmenu()
+{
+    if (language == 1)
+    {
+        printf("\n");
+        printf("\n");
+        printf("                登录***********请按1                              开户***********请按2");
+        printf("\n");
+        printf("                取款***********请按3                              存款***********请按4");
+        printf("\n");
+        printf("                转账***********请按5                              打印流水账单***请按6");
+        printf("\n");
+        printf("                修改密码*******请按7                              退出***********请按8");
+        printf("\n");
+    }
+    else
+    {
+        printf("Sign in,press 1\n");
+        printf("Sign up,press 2\n");
+        printf("Sign out,press 3\n");
+    }
+    int n;
+    scanf_s("%d", &n);
+    if (n == 1)
+    {
+        signIn();
+    }
+    else if (n == 2)
+    {
+        signUp();
+    }
+    else if (n == 3)
+    {
+        drawMoney();
+    }
+    else if (n == 4)
+    {
+        saveMoney();
+    }
+
+}
+
+
+
+int main()
+{
+    loadData();
+    printf("\n");
+    printf("\n");
+    printf("                中文***********请按1                  English service***********press 2");
+    printf("\n");
+    scanf_s("%d", &language);
+    showmenu();
+    saveData();
+    return 0;
+}
